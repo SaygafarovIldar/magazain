@@ -1,5 +1,6 @@
 from django.db import models
 from django.template.defaultfilters import slugify
+from django.urls import reverse
 
 
 # Create your models here.
@@ -11,6 +12,9 @@ from django.template.defaultfilters import slugify
 class Category(models.Model):
     title = models.CharField(verbose_name="Название категории", max_length=150, unique=True)
     slug = models.SlugField(blank=True, null=True, unique=True)
+
+    def get_absolute_url(self):
+        return reverse("category_products", kwargs={"slug": self.slug})
 
     def __str__(self):
         return self.title
@@ -42,7 +46,6 @@ class Brand(models.Model):
         verbose_name_plural = "Бренды"
 
 
-
 class Product(models.Model):
     title = models.CharField(verbose_name="Название товара", max_length=150, unique=True)
     descr = models.TextField(verbose_name="Описание товара")
@@ -55,6 +58,23 @@ class Product(models.Model):
 
     def __str__(self):
         return self.title
+
+    def get_absolute_url(self):
+        return reverse("product_detail", kwargs={"slug": self.slug})
+
+    def get_first_photo(self):
+        photo = self.productimage_set.all().first()
+        if photo is not None:
+            return photo.photo.url
+        return "https://images.satu.kz/126101312_w640_h640_razdel-v-razrabotketovary.jpg"
+
+    def get_second_photo(self):
+        try:
+            photo = self.productimage_set.all()[1]
+            if photo is not None:
+                return photo.photo.url
+        except Exception as e:
+            return "https://images.satu.kz/126101312_w640_h640_razdel-v-razrabotketovary.jpg"
 
     def save(self, *args, **kwargs):
         if not self.slug:
